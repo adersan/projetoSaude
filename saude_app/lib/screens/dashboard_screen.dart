@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'medicamentos_screen.dart';
 import 'detalhes_medicamento_screen.dart';
 import '../database/database_helper.dart';
@@ -13,7 +14,15 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+
+TimeOfDay parseHorario(String horario) {
+  final format = DateFormat.jm(); // Ex: 10 PM, 7:30 AM
+  final dateTime = format.parse(horario);
+  return TimeOfDay.fromDateTime(dateTime);
+}
+
+
+  class _DashboardScreenState extends State<DashboardScreen> {
   List<Medicamento> _medicamentos = [];
 
   @override
@@ -43,12 +52,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final horaAtual = TimeOfDay.now();
     final medicamentosOrdenados = [..._medicamentos];
     medicamentosOrdenados.sort((a, b) {
-      final aHora = TimeOfDay(
-          hour: int.parse(a.horariosGerados.first.split(":")[0]),
-          minute: int.parse(a.horariosGerados.first.split(":")[1]));
-      final bHora = TimeOfDay(
-          hour: int.parse(b.horariosGerados.first.split(":")[0]),
-          minute: int.parse(b.horariosGerados.first.split(":")[1]));
+      final aHora = parseHorario(a.horariosGerados.first);
+      final bHora = parseHorario(b.horariosGerados.first);
       final aPassado = aHora.hour < horaAtual.hour ||
           (aHora.hour == horaAtual.hour && aHora.minute <= horaAtual.minute);
       final bPassado = bHora.hour < horaAtual.hour ||
@@ -109,14 +114,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       itemCount: medicamentosOrdenados.length,
                       itemBuilder: (context, index) {
                         final m = medicamentosOrdenados[index];
-                        return Container(
-                          margin: EdgeInsets.only(bottom: 12),
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DetalhesMedicamentoScreen(medicamento: m),
+                              ),
+                            );
+                          },
                           child: Container(
+                            margin: EdgeInsets.only(bottom: 12),
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -124,15 +132,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             child: Row(
                               children: [
-                              Icon(Icons.alarm, color: Color(0xFF6C4F9E)),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Tomar ${m.nome} às ${m.horariosGerados.first}',
-                                  style: TextStyle(fontSize: 16),
+                                Icon(Icons.alarm, color: Color(0xFF6C4F9E)),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Tomar ${m.nome} às ${m.horariosGerados.first}',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },
