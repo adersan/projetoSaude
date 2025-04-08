@@ -4,6 +4,27 @@ import 'detalhes_medicamento_screen.dart';
 import '../database/database_helper.dart';
 import '../models/medicamento_model.dart';
 
+TimeOfDay parseHorarioManual(String horario) {
+  try {
+    horario = horario.trim();
+    final partes = horario.split(' ');
+    if (partes.isEmpty) throw FormatException("Formato inválido");
+
+    final horaMinuto = partes[0].split(':');
+    int hora = int.tryParse(horaMinuto[0].trim()) ?? 0;
+    int minuto = horaMinuto.length > 1 ? int.tryParse(horaMinuto[1].trim()) ?? 0 : 0;
+
+    final amPm = partes.length > 1 ? partes[1].toUpperCase().trim() : '';
+    if (amPm == 'PM' && hora != 12) hora += 12;
+    if (amPm == 'AM' && hora == 12) hora = 0;
+
+    return TimeOfDay(hour: hora, minute: minuto);
+  } catch (e) {
+    print("Erro ao converter horário: \$e");
+    return TimeOfDay(hour: 0, minute: 0);
+  }
+}
+
 class DashboardScreen extends StatefulWidget {
   final String nomeUsuario;
 
@@ -43,12 +64,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final horaAtual = TimeOfDay.fromDateTime(DateTime.now());
     final medicamentosOrdenados = [..._medicamentos];
     medicamentosOrdenados.sort((a, b) {
-      final aHora = TimeOfDay(
-          hour: int.parse(a.horariosGerados.first.split(":")[0]),
-          minute: int.parse(a.horariosGerados.first.split(":")[1]));
-      final bHora = TimeOfDay(
-          hour: int.parse(b.horariosGerados.first.split(":")[0]),
-          minute: int.parse(b.horariosGerados.first.split(":")[1]));
+      final aHora = parseHorarioManual(a.horariosGerados.first.split(":")[0] + ':' + a.horariosGerados.first.split(":")[1]);
+      final bHora = parseHorarioManual(b.horariosGerados.first.split(":")[0] + ':' + b.horariosGerados.first.split(":")[1]);
       final aPassado = aHora.hour < horaAtual.hour ||
           (aHora.hour == horaAtual.hour && aHora.minute <= horaAtual.minute);
       final bPassado = bHora.hour < horaAtual.hour ||
