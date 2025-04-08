@@ -3,7 +3,8 @@ import '../models/medicamento_model.dart';
 import '../database/database_helper.dart';
 
 class MedicamentosScreen extends StatefulWidget {
-  const MedicamentosScreen({super.key});
+  final int usuarioId;
+  const MedicamentosScreen({super.key, required this.usuarioId});
 
   @override
   State<MedicamentosScreen> createState() => _MedicamentosScreenState();
@@ -29,7 +30,7 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
   }
 
   void _carregarMedicamentos() async {
-    final lista = await DatabaseHelper().getMedicamentos();
+    final lista = await DatabaseHelper().getMedicamentos(widget.usuarioId);
     setState(() {
       _medicamentos = lista;
     });
@@ -71,6 +72,7 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
         horarioInicial: _horarioInicial.format(context),
         horariosGerados: horariosGerados,
         observacoes: _observacoesController.text,
+        usuarioId: widget.usuarioId,
       );
 
       if (_editandoId == null) {

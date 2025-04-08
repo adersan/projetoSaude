@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), filePath);
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
     );
   }
@@ -45,20 +45,16 @@ class DatabaseHelper {
         vezesPorDia INTEGER,
         horarioInicial TEXT,
         horariosGerados TEXT,
-        observacoes TEXT
+        observacoes TEXT,
+        usuarioId INTEGER
       )
     ''');
   }
 
   // USUÁRIO
   Future<int> insertUser(User user) async {
-    try {
-      final db = await database;
-      return await db.insert('usuarios', user.toMap());
-    } catch (e) {
-      print('Erro ao inserir usuário: \$e');
-      rethrow;
-    }
+    final db = await database;
+    return await db.insert('usuarios', user.toMap());
   }
 
   Future<User?> getUser(String email, String senha) async {
@@ -80,9 +76,13 @@ class DatabaseHelper {
     return await db.insert('medicamentos', medicamento.toMap());
   }
 
-  Future<List<Medicamento>> getMedicamentos() async {
+  Future<List<Medicamento>> getMedicamentos(int usuarioId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('medicamentos');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'medicamentos',
+      where: 'usuarioId = ?',
+      whereArgs: [usuarioId],
+    );
     return List.generate(maps.length, (i) => Medicamento.fromMap(maps[i]));
   }
 

@@ -27,8 +27,9 @@ TimeOfDay parseHorarioManual(String horario) {
 
 class DashboardScreen extends StatefulWidget {
   final String nomeUsuario;
+  final int usuarioId;
 
-  const DashboardScreen({super.key, required this.nomeUsuario});
+  const DashboardScreen({super.key, required this.nomeUsuario, required this.usuarioId});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -44,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _carregarMedicamentos() async {
-    final lista = await DatabaseHelper().getMedicamentos();
+    final lista = await DatabaseHelper().getMedicamentos(widget.usuarioId);
     lista.sort((a, b) => a.horarioInicial.compareTo(b.horarioInicial));
     setState(() {
       _medicamentos = lista;
@@ -54,7 +55,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _abrirTelaMedicamentos() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const MedicamentosScreen()),
+      MaterialPageRoute(
+        builder: (_) => MedicamentosScreen(usuarioId: widget.usuarioId),
+      ),
     );
     _carregarMedicamentos();
   }
@@ -64,8 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final horaAtual = TimeOfDay.fromDateTime(DateTime.now());
     final medicamentosOrdenados = [..._medicamentos];
     medicamentosOrdenados.sort((a, b) {
-      final aHora = parseHorarioManual(a.horariosGerados.first.split(":")[0] + ':' + a.horariosGerados.first.split(":")[1]);
-      final bHora = parseHorarioManual(b.horariosGerados.first.split(":")[0] + ':' + b.horariosGerados.first.split(":")[1]);
+      final aHora = parseHorarioManual(a.horariosGerados.first);
+      final bHora = parseHorarioManual(b.horariosGerados.first);
+
       final aPassado = aHora.hour < horaAtual.hour ||
           (aHora.hour == horaAtual.hour && aHora.minute <= horaAtual.minute);
       final bPassado = bHora.hour < horaAtual.hour ||
@@ -89,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Olá, ${widget.nomeUsuario}!',
+              'Olá, ' + widget.nomeUsuario + '!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -106,8 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               spacing: 16,
               runSpacing: 16,
               children: [
-                _buildCard(context, 'Medicamentos', Icons.medication,
-                    _abrirTelaMedicamentos),
+                _buildCard(context, 'Medicamentos', Icons.medication, _abrirTelaMedicamentos),
                 _buildCard(context, 'Exercícios', Icons.fitness_center, () {}),
                 _buildCard(context, 'Nutrição', Icons.restaurant, () {}),
                 _buildCard(context, 'Relatórios', Icons.bar_chart, () {}),

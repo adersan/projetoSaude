@@ -30,7 +30,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
       try {
         final id = await DatabaseHelper().insertUser(user);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Usuário cadastrado com sucesso! ID: \$id')),
+          SnackBar(content: Text('Usuário cadastrado com sucesso!')),
         );
         Navigator.pop(context); // Voltar para login
       } catch (e) {

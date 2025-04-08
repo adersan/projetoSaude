@@ -7,6 +7,7 @@ class Medicamento {
   final String horarioInicial;
   final List<String> horariosGerados;
   final String observacoes;
+  final int usuarioId;
 
   Medicamento({
     this.id,
@@ -17,6 +18,7 @@ class Medicamento {
     required this.horarioInicial,
     required this.horariosGerados,
     required this.observacoes,
+    required this.usuarioId,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,8 +29,9 @@ class Medicamento {
       'unidade': unidade,
       'vezesPorDia': vezesPorDia,
       'horarioInicial': horarioInicial,
-      'horariosGerados': horariosGerados.join(','),  // <-- serialização
+      'horariosGerados': horariosGerados.join(','),
       'observacoes': observacoes,
+      'usuarioId': usuarioId,
     };
   }
 
@@ -40,8 +43,9 @@ class Medicamento {
       unidade: map['unidade'],
       vezesPorDia: map['vezesPorDia'],
       horarioInicial: map['horarioInicial'],
-      horariosGerados: (map['horariosGerados'] as String).split(','),  // <-- desserialização
+      horariosGerados: (map['horariosGerados'] as String).split(','),
       observacoes: map['observacoes'],
+      usuarioId: map['usuarioId'],
     );
   }
 }
