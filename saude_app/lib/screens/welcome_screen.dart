@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'cadastro_screen.dart';
 import 'login_screen.dart';
@@ -8,13 +9,18 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFAF5FF), // Lavanda claro
+      backgroundColor: Color(0xFFFFFFFF), // Lavanda claro
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Image.asset(
+                'assets/imagens/logo.png',
+                height: 160,
+              ),
+              SizedBox(height: 24),
               Text(
                 'Seja bem-vindo',
                 style: TextStyle(
