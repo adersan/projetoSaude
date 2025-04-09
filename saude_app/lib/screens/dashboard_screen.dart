@@ -1,29 +1,13 @@
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'medicamentos_screen.dart';
 import 'detalhes_medicamento_screen.dart';
+import 'exercicios_screen.dart';
+import 'exercicios_dashboard_screen.dart';
 import '../database/database_helper.dart';
 import '../models/medicamento_model.dart';
-
-TimeOfDay parseHorarioManual(String horario) {
-  try {
-    horario = horario.trim();
-    final partes = horario.split(' ');
-    if (partes.isEmpty) throw FormatException("Formato inválido");
-
-    final horaMinuto = partes[0].split(':');
-    int hora = int.tryParse(horaMinuto[0].trim()) ?? 0;
-    int minuto = horaMinuto.length > 1 ? int.tryParse(horaMinuto[1].trim()) ?? 0 : 0;
-
-    final amPm = partes.length > 1 ? partes[1].toUpperCase().trim() : '';
-    if (amPm == 'PM' && hora != 12) hora += 12;
-    if (amPm == 'AM' && hora == 12) hora = 0;
-
-    return TimeOfDay(hour: hora, minute: minuto);
-  } catch (e) {
-    print("Erro ao converter horário: \$e");
-    return TimeOfDay(hour: 0, minute: 0);
-  }
-}
+import '../models/exercicio_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String nomeUsuario;
@@ -37,18 +21,23 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Medicamento> _medicamentos = [];
+  List<Exercicio> _exercicios = [];
 
   @override
   void initState() {
     super.initState();
-    _carregarMedicamentos();
+    _carregarAtividades();
   }
 
-  void _carregarMedicamentos() async {
-    final lista = await DatabaseHelper().getMedicamentos(widget.usuarioId);
-    lista.sort((a, b) => a.horarioInicial.compareTo(b.horarioInicial));
+  void _carregarAtividades() async {
+    final meds = await DatabaseHelper().getMedicamentos(widget.usuarioId);
+    final exs = await DatabaseHelper().getExercicios(widget.usuarioId);
+
+    meds.sort((a, b) => a.horarioInicial.compareTo(b.horarioInicial));
+
     setState(() {
-      _medicamentos = lista;
+      _medicamentos = meds;
+      _exercicios = exs;
     });
   }
 
@@ -59,25 +48,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (_) => MedicamentosScreen(usuarioId: widget.usuarioId),
       ),
     );
-    _carregarMedicamentos();
+    _carregarAtividades();
+  }
+
+  void _abrirTelaExercicios() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExerciciosScreen(usuarioId: widget.usuarioId),
+      ),
+    );
+    _carregarAtividades();
+  }
+
+  void _abrirDashboardExercicios() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExerciciosDashboardScreen(usuarioId: widget.usuarioId),
+      ),
+    );
+  }
+
+  TimeOfDay parseHorario(String horario) {
+    try {
+      final format = DateFormat.jm();
+      final dt = format.parse(horario);
+      return TimeOfDay.fromDateTime(dt);
+    } catch (e) {
+      final partes = horario.split(':');
+      return TimeOfDay(
+        hour: int.tryParse(partes[0]) ?? 0,
+        minute: int.tryParse(partes[1]) ?? 0,
+      );
+    }
+  }
+
+  List<Map<String, dynamic>> _atividadesDoDia() {
+    final hoje = DateFormat('EEEE', 'pt_BR').format(DateTime.now());
+    final agora = TimeOfDay.fromDateTime(DateTime.now());
+
+    List<Map<String, dynamic>> lista = [];
+
+    for (var m in _medicamentos) {
+      final hora = parseHorario(m.horariosGerados.first);
+      lista.add({
+        'tipo': 'medicamento',
+        'nome': 'Tomar ${m.nome}',
+        'hora': hora,
+        'objeto': m,
+      });
+    }
+
+    for (var e in _exercicios) {
+      if (e.diasSemana.contains('Todos') || e.diasSemana.contains(hoje)) {
+        final hora = parseHorario(e.horario);
+        lista.add({
+          'tipo': 'exercicio',
+          'nome': e.nome,
+          'hora': hora,
+          'objeto': e,
+        });
+      }
+    }
+
+    lista.sort((a, b) {
+      final aHora = a['hora'] as TimeOfDay;
+      final bHora = b['hora'] as TimeOfDay;
+      return aHora.hour != bHora.hour
+          ? aHora.hour.compareTo(bHora.hour)
+          : aHora.minute.compareTo(bHora.minute);
+    });
+
+    return lista;
   }
 
   @override
   Widget build(BuildContext context) {
-    final horaAtual = TimeOfDay.fromDateTime(DateTime.now());
-    final medicamentosOrdenados = [..._medicamentos];
-    medicamentosOrdenados.sort((a, b) {
-      final aHora = parseHorarioManual(a.horariosGerados.first);
-      final bHora = parseHorarioManual(b.horariosGerados.first);
-
-      final aPassado = aHora.hour < horaAtual.hour ||
-          (aHora.hour == horaAtual.hour && aHora.minute <= horaAtual.minute);
-      final bPassado = bHora.hour < horaAtual.hour ||
-          (bHora.hour == horaAtual.hour && bHora.minute <= horaAtual.minute);
-      if (aPassado && !bPassado) return 1;
-      if (!aPassado && bPassado) return -1;
-      return aHora.hour.compareTo(bHora.hour);
-    });
+    final atividades = _atividadesDoDia();
 
     return Scaffold(
       backgroundColor: Color(0xFFFAF5FF),
@@ -111,7 +159,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               runSpacing: 16,
               children: [
                 _buildCard(context, 'Medicamentos', Icons.medication, _abrirTelaMedicamentos),
-                _buildCard(context, 'Exercícios', Icons.fitness_center, () {}),
+                _buildCard(context, 'Exercícios', Icons.fitness_center, _abrirTelaExercicios),
+                _buildCard(context, 'Desempenho', Icons.show_chart, _abrirDashboardExercicios),
                 _buildCard(context, 'Nutrição', Icons.restaurant, () {}),
                 _buildCard(context, 'Relatórios', Icons.bar_chart, () {}),
               ],
@@ -123,40 +172,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             SizedBox(height: 12),
             Expanded(
-              child: medicamentosOrdenados.isEmpty
-                  ? Text('Nenhum medicamento cadastrado.')
+              child: atividades.isEmpty
+                  ? Text('Nenhuma atividade cadastrada.')
                   : ListView.builder(
-                      itemCount: medicamentosOrdenados.length,
+                      itemCount: atividades.length,
                       itemBuilder: (context, index) {
-                        final m = medicamentosOrdenados[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DetalhesMedicamentoScreen(medicamento: m),
+                        final item = atividades[index];
+                        final hora = item['hora'] as TimeOfDay;
+                        final nome = item['nome'];
+                        final tipo = item['tipo'];
+
+                        return Container(
+                          margin: EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                tipo == 'medicamento' ? Icons.medication : Icons.fitness_center,
+                                color: Color(0xFF6C4F9E),
                               ),
-                            );
-                          },
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: 12),
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.alarm, color: Color(0xFF6C4F9E)),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Tomar ${m.nome} às ${m.horariosGerados.first}',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  '${hora.format(context)} - $nome',
+                                  style: TextStyle(fontSize: 16),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         );
                       },

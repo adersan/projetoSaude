@@ -1,9 +1,12 @@
+
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await DatabaseHelper().deleteDatabaseFile(); // <- REMOVIDO para manter o banco de dados
+  await initializeDateFormatting('pt_BR');
   runApp(SaudeApp());
 }
 
@@ -13,6 +16,14 @@ class SaudeApp extends StatelessWidget {
     return MaterialApp(
       title: 'App de Saúde',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('pt', 'BR'),
+      ],
       theme: ThemeData(
         scaffoldBackgroundColor: Color(0xFFFAF5FF),
         primaryColor: Color(0xFF6C4F9E),

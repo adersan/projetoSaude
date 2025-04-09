@@ -1,7 +1,9 @@
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/user_model.dart';
 import '../models/medicamento_model.dart';
+import '../models/exercicio_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -18,11 +20,7 @@ class DatabaseHelper {
 
   Future<Database> _initDB(String filePath) async {
     final path = join(await getDatabasesPath(), filePath);
-    return await openDatabase(
-      path,
-      version: 4,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future _onCreate(Database db, int version) async {
@@ -49,9 +47,23 @@ class DatabaseHelper {
         usuarioId INTEGER
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE exercicios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT,
+        tipo TEXT,
+        duracao INTEGER,
+        data TEXT,
+        horario TEXT,
+        diasSemana TEXT,
+        observacoes TEXT,
+        usuarioId INTEGER
+      )
+    ''');
   }
 
-  // USUÁRIO
+  // ========== USUÁRIOS ==========
   Future<int> insertUser(User user) async {
     final db = await database;
     return await db.insert('usuarios', user.toMap());
@@ -70,7 +82,7 @@ class DatabaseHelper {
     return null;
   }
 
-  // MEDICAMENTO
+  // ========== MEDICAMENTOS ==========
   Future<int> insertMedicamento(Medicamento medicamento) async {
     final db = await database;
     return await db.insert('medicamentos', medicamento.toMap());
@@ -86,8 +98,53 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => Medicamento.fromMap(maps[i]));
   }
 
+  Future<int> updateMedicamento(Medicamento medicamento) async {
+    final db = await database;
+    return await db.update(
+      'medicamentos',
+      medicamento.toMap(),
+      where: 'id = ?',
+      whereArgs: [medicamento.id],
+    );
+  }
+
   Future<int> deleteMedicamento(int id) async {
     final db = await database;
     return await db.delete('medicamentos', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ========== EXERCÍCIOS ==========
+  Future<int> insertExercicio(Exercicio exercicio) async {
+    final db = await database;
+    return await db.insert('exercicios', exercicio.toMap());
+  }
+
+  Future<List<Exercicio>> getExercicios(int usuarioId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'exercicios',
+      where: 'usuarioId = ?',
+      whereArgs: [usuarioId],
+    );
+    return List.generate(maps.length, (i) => Exercicio.fromMap(maps[i]));
+  }
+
+  Future<int> updateExercicio(Exercicio exercicio) async {
+    final db = await database;
+    return await db.update(
+      'exercicios',
+      exercicio.toMap(),
+      where: 'id = ?',
+      whereArgs: [exercicio.id],
+    );
+  }
+
+  Future<int> deleteExercicio(int id) async {
+    final db = await database;
+    return await db.delete(
+      'exercicios',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
