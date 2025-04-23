@@ -1,0 +1,33 @@
+
+name: saude_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  pdf: ^3.10.4
+  printing: ^5.11.0
+  share_plus: ^7.0.0
+  flutter:
+    sdk: flutter
+  intl: 0.19.0
+  flutter_localizations:
+    sdk: flutter
+  sqflite: ^2.3.0
+  path_provider: ^2.0.15
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.64.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/imagens/logo.png
