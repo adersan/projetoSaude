@@ -1,5 +1,5 @@
 
-# 📱 Documentação do Sistema - App Flutter
+# 📱 Documentação do Sistema - App Free
 
 ## 1. Introdução
 
@@ -86,6 +86,4 @@ Dashboard
 
 📌 **Documentações Relacionadas:**  
 - [Documentação Técnica](DOCUMENTACAO_TECNICA_FLUTTER.md)
-
-
 
