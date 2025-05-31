@@ -123,5 +123,7 @@ Utiliza a biblioteca `pdf` do Flutter para gerar relatórios em PDF com dados de
 - O app está preparado para suportar integração com APIs externas
 
 ---
+📌 **Documentações Relacionadas:**  
+- [Documentação](readme.md)
 
 *Última atualização técnica: 2025*
