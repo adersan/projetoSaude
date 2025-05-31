@@ -1,5 +1,5 @@
 
-# 🛠️ Documentação Técnica - App Flutter
+# 🛠️ Documentação Técnica - App Free
 
 ## 1. Visão Geral
 
