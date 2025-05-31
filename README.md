@@ -84,4 +84,6 @@ Dashboard
 - Modularização clara por tipo de funcionalidade
 - Excelente base para expansão (sincronização em nuvem, notificações, etc.)
 
+📌 **Documentações Relacionadas:**  
+- [Documentação Técnica](DOCUMENTACAO_TECNICA_FLUTTER.md)
 
